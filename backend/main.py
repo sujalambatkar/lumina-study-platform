@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database import connect_db, close_db
-from app.documents.ingestion import get_embedding_model, get_chroma_client
+from app.documents.ingestion import get_chroma_client
 from app.security import SecurityHeadersMiddleware
 from app.auth.router import router as auth_router
 from app.documents.router import router as documents_router
@@ -28,8 +28,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Starting Lumina API...")
     await connect_db()
-    get_embedding_model()
-    get_chroma_client()
+    # Models load lazily on first use to stay within 512MB limit
     logger.info("Startup complete")
     yield
     await close_db()
