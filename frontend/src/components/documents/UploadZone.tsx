@@ -178,11 +178,11 @@ export default function UploadZone() {
               style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
                 <label style={labelStyle}>
-                  {tab === "youtube" ? "YouTube URL" : "Web URL"}
+                  Web URL
                 </label>
                 <input
                   style={inputStyle}
-                  placeholder={tab === "youtube" ? "https://youtube.com/watch?v=..." : "https://example.com/article"}
+                  placeholder="https://example.com/article"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   onFocus={(e) => { e.target.style.borderColor = "rgba(232,168,76,0.5)"; }}
@@ -225,7 +225,7 @@ export default function UploadZone() {
                     }} />
                     Processing...
                   </>
-                ) : `Process ${tab === "youtube" ? "video" : "page"}`}
+                ) : "Process page"}
               </button>
             </motion.div>
           )}
