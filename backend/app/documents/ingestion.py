@@ -5,22 +5,23 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import chromadb
+from fastembed import TextEmbedding
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from sentence_transformers import SentenceTransformer
 
 from app.config import settings
 from app.database import get_db
 from app.documents.parsers import parse_pdf_bytes, parse_youtube_transcript, parse_web_url
 
 _splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
-_embedding_model: Optional[SentenceTransformer] = None
+_embedding_model: Optional[TextEmbedding] = None
 _chroma_client: Optional[chromadb.PersistentClient] = None
 
 
-def get_embedding_model() -> SentenceTransformer:
+def get_embedding_model() -> TextEmbedding:
     global _embedding_model
     if _embedding_model is None:
-        _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+        # BAAI/bge-small-en-v1.5 — same 384 dims as MiniLM, uses ONNX (no PyTorch, ~80MB)
+        _embedding_model = TextEmbedding("BAAI/bge-small-en-v1.5")
     return _embedding_model
 
 
@@ -87,7 +88,7 @@ async def _embed_and_store(document_id: str, full_text: str) -> None:
     await _update_document_status(document_id, "processing", 50)
 
     model = get_embedding_model()
-    embeddings = await loop.run_in_executor(None, lambda: model.encode(chunks).tolist())
+    embeddings = await loop.run_in_executor(None, lambda: [e.tolist() for e in model.embed(chunks)])
     await _update_document_status(document_id, "processing", 80)
 
     client = get_chroma_client()
@@ -103,7 +104,7 @@ async def _embed_and_store(document_id: str, full_text: str) -> None:
 
 def retrieve_chunks(document_id: str, query: str, n_results: int = 5) -> list[dict]:
     model = get_embedding_model()
-    query_embedding = model.encode([query]).tolist()[0]
+    query_embedding = next(model.embed([query])).tolist()
 
     client = get_chroma_client()
     collection_name = f"doc_{document_id}".replace("-", "_")
