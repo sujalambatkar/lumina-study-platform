@@ -6,7 +6,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Sparkles, MessageSquare, Network, Brain,
-  FileText, Video, Globe, CheckCircle, BookOpen, GraduationCap, Microscope, Code2, FlaskConical, Play,
+  FileText, Video, Globe, BookOpen, GraduationCap, Microscope, Code2, FlaskConical, Play,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import toast from "react-hot-toast";
@@ -125,7 +125,7 @@ export default function LandingPage() {
             color: "#0a0a0f", padding: "8px 18px", borderRadius: 8,
             fontSize: 14, fontWeight: 500, textDecoration: "none",
           }}>
-            Get started free
+            Get started
           </Link>
         </div>
       </nav>
@@ -363,45 +363,6 @@ export default function LandingPage() {
             </motion.div>
           ))}
         </div>
-      </section>
-
-      {/* CTA banner */}
-      <section style={{ maxWidth: 1000, margin: "0 auto", padding: "0 24px 80px" }}>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{
-            background: "linear-gradient(135deg, #1c1400 0%, #0f0f18 100%)",
-            border: "1px solid rgba(232,168,76,0.2)",
-            borderRadius: 18, padding: "48px 40px", textAlign: "center",
-          }}
-        >
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 500, color: "#ede9e0", marginBottom: 12 }}>
-            Ready to actually understand your material?
-          </h2>
-          <p style={{ fontSize: 15, color: "#8a8278", marginBottom: 28 }}>
-            Free to use. No credit card. Just upload and start learning.
-          </p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/register" style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "13px 32px", borderRadius: 8,
-              background: "linear-gradient(135deg, #e8a84c, #d4863e)",
-              color: "#0a0a0f", fontWeight: 600, fontSize: 14, textDecoration: "none",
-              boxShadow: "0 4px 20px rgba(232,168,76,0.25)",
-            }}>
-              Get started free <ArrowRight size={15} />
-            </Link>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginTop: 24 }}>
-            {["No credit card", "Free forever", "Works on any device"].map((t) => (
-              <span key={t} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#6b6560" }}>
-                <CheckCircle size={13} color="#4caf7d" /> {t}
-              </span>
-            ))}
-          </div>
-        </motion.div>
       </section>
 
       {/* Footer */}

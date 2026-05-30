@@ -12,18 +12,31 @@ export default function TrackerPage() {
   const [topics, setTopics] = useState<TopicMastery[]>([]);
   const [summary, setSummary] = useState<TrackerSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { documents, fetchDocuments } = useDocumentStore();
 
-  useEffect(() => {
-    fetchDocuments();
-    api.getTrackerSummary().then(setSummary).catch(() => {});
-  }, [fetchDocuments]);
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await Promise.all([
+        fetchDocuments(),
+        api.getTrackerSummary().then(setSummary).catch(() => {}),
+      ]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const ready = documents.filter((d) => d.status === "ready");
     if (!ready.length) { setLoading(false); return; }
     Promise.all(ready.map((d) => api.getDocumentTracker(d.id).catch(() => [] as TopicMastery[])))
-      .then((r) => { setTopics(r.flat()); setLoading(false); });
+      .then((r) => { setTopics(r.flat()); setLoading(false); })
+      .catch((err) => { setError(err instanceof Error ? err.message : "Failed to load tracker"); setLoading(false); });
   }, [documents]);
 
   const cols = [
@@ -74,8 +87,38 @@ export default function TrackerPage() {
           </div>
         )}
 
+        {/* Error state */}
+        {error && !loading && (
+          <div style={{
+            background: "#0f0f18", border: "1px solid rgba(232,92,92,0.2)",
+            borderRadius: 14, padding: "40px 24px",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 12,
+          }}>
+            <p style={{ fontSize: 14, color: "#e85c5c" }}>{error}</p>
+            <button
+              onClick={loadData}
+              style={{
+                padding: "8px 20px", borderRadius: 8, border: "none",
+                background: "linear-gradient(135deg,#e8a84c,#d4863e)",
+                color: "#0a0a0f", fontWeight: 600, fontSize: 13, cursor: "pointer",
+                fontFamily: "var(--font-body)",
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "48px 0" }}>
+            <div style={{ width: 26, height: 26, border: "2px solid rgba(255,255,255,0.08)", borderTopColor: "#e8a84c", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+            <p style={{ fontSize: 13, color: "#6b6560" }}>Loading tracker data…</p>
+          </div>
+        )}
+
         {/* Empty */}
-        {!loading && topics.length === 0 && (
+        {!loading && !error && topics.length === 0 && (
           <div style={{
             background: "#0f0f18",
             border: "1px solid rgba(255,255,255,0.07)",
@@ -175,6 +218,7 @@ export default function TrackerPage() {
           </div>
         )}
       </motion.div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

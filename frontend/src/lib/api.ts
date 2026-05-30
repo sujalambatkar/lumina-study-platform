@@ -39,7 +39,7 @@ class ApiClient {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
+    const timeout = setTimeout(() => controller.abort(), 35000);
 
     let response: Response;
     try {
@@ -52,7 +52,7 @@ class ApiClient {
     } catch (err) {
       clearTimeout(timeout);
       if (err instanceof Error && err.name === "AbortError") {
-        throw new Error("Request timed out — is the backend running?");
+        throw new Error("Backend is taking too long to respond. If this is the first request, wait 30 seconds and try again.");
       }
       throw new Error("Cannot reach server — make sure the backend is running on port 8000");
     }
