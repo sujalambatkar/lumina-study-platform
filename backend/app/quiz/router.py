@@ -32,7 +32,7 @@ async def generate_quiz(
     if doc["status"] != "ready":
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Document is still processing")
 
-    chunks = retrieve_chunks(payload.document_id, payload.topic, n_results=8)
+    chunks = await retrieve_chunks(payload.document_id, payload.topic, n_results=8)
     if not chunks:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Not enough content to generate quiz")
 
@@ -40,7 +40,7 @@ async def generate_quiz(
     prompt = QUIZ_GENERATION_PROMPT.format(topic=payload.topic, context=context, count=payload.count)
 
     llm = get_llm()
-    response = llm.invoke(prompt)
+    response = await llm.ainvoke(prompt)
     content = response.content if hasattr(response, "content") else str(response)
 
     content = content.strip()

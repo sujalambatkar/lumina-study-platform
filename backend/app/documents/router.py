@@ -5,7 +5,7 @@ import uuid
 from app.auth.utils import get_current_user
 from app.database import get_db
 from app.documents.models import DocumentPublic, DocumentStatusResponse, URLIngestionRequest
-from app.documents.ingestion import ingest_pdf, ingest_youtube, ingest_web, delete_document_collection
+from app.documents.ingestion import ingest_pdf, ingest_youtube, ingest_web, delete_document_chunks
 from app.security import upload_rate_limit
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -129,4 +129,4 @@ async def delete_document(document_id: str, current_user: dict = Depends(get_cur
     result = await db.documents.delete_one({"_id": document_id, "user_id": current_user["_id"]})
     if result.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
-    delete_document_collection(document_id)
+    await delete_document_chunks(document_id)

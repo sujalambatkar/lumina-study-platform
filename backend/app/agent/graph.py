@@ -24,8 +24,8 @@ def get_llm() -> ChatGroq:
 
 
 async def stream_agent_response(document_id: str, message: str) -> AsyncIterator[str]:
-    # Step 1: retrieve relevant chunks
-    chunks = retrieve_chunks(document_id, message, n_results=6)
+    # Step 1: retrieve relevant chunks (now async, uses MongoDB text search)
+    chunks = await retrieve_chunks(document_id, message, n_results=6)
 
     if chunks:
         context_parts = []

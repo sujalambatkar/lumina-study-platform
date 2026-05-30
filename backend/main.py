@@ -8,7 +8,6 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database import connect_db, close_db
-from app.documents.ingestion import get_chroma_client
 from app.security import SecurityHeadersMiddleware
 from app.auth.router import router as auth_router
 from app.documents.router import router as documents_router
