@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+:root {
+  --bg-base: #0a0a0f;
+  --bg-surface: #0f0f18;
+  --bg-elevated: #161622;
+  --bg-hover: #1e1e2e;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.1);
+  --text-primary: #ede9e0;
+  --text-secondary: #8a8278;
+  --text-muted: #4a4642;
+  --accent: #e8a84c;
+  --accent-hover: #f0b85e;
+  --accent-dim: rgba(232, 168, 76, 0.1);
+  --accent-glow: rgba(232, 168, 76, 0.05);
+  --success: #4caf7d;
+  --danger: #e85c5c;
+  --info: #5c8fe8;
+  --font-display: var(--font-display, "Georgia", serif);
+  --font-body: var(--font-body, "system-ui", sans-serif);
+  --font-mono: var(--font-mono, "monospace");
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+
+/* --- Backgrounds --- */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-dots {
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* --- Glass card --- */
+.glass {
+  background: rgba(22, 22, 34, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+/* --- Glow effects --- */
+.glow-amber {
+  box-shadow: 0 0 40px rgba(232, 168, 76, 0.12), 0 0 80px rgba(232, 168, 76, 0.05);
+}
+
+/* --- Prose (markdown) styles --- */
+.prose-lumina { color: var(--text-primary); }
+.prose-lumina h1, .prose-lumina h2, .prose-lumina h3 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  margin: 1.4em 0 0.5em;
+  font-weight: 500;
+}
+.prose-lumina h1 { font-size: 1.5em; }
+.prose-lumina h2 { font-size: 1.25em; }
+.prose-lumina h3 { font-size: 1.1em; }
+.prose-lumina p { margin-bottom: 0.9em; line-height: 1.7; }
+.prose-lumina p:last-child { margin-bottom: 0; }
+.prose-lumina ul, .prose-lumina ol { padding-left: 1.4em; margin-bottom: 0.9em; }
+.prose-lumina li { margin-bottom: 0.3em; }
+.prose-lumina code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(232,168,76,0.1);
+  color: var(--accent);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+.prose-lumina pre {
+  background: #0d0d14;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.9em 0;
+}
+.prose-lumina pre code { background: none; padding: 0; color: var(--text-primary); }
+.prose-lumina blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1em;
+  color: var(--text-secondary);
+  margin: 1em 0;
+  font-style: italic;
+}
+.prose-lumina strong { color: var(--text-primary); font-weight: 600; }
+.prose-lumina a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.prose-lumina hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
+.prose-lumina table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.9em; }
+.prose-lumina th, .prose-lumina td { padding: 0.5em 0.75em; border: 1px solid var(--border); }
+.prose-lumina th { background: var(--bg-elevated); color: var(--text-secondary); font-weight: 500; }
+
+/* --- Cursor blink --- */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.cursor-blink::after {
+  content: "▋";
+  animation: blink 0.9s infinite;
+  color: var(--accent);
+  margin-left: 1px;
+  font-size: 0.85em;
+}
+
+/* --- Gradient text --- */
+.gradient-text {
+  background: linear-gradient(135deg, #f0b85e 0%, #e8a84c 40%, #d4863e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- Noise grain overlay (on body) --- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* --- Shimmer loading --- */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(255,255,255,0.04) 50%, var(--bg-elevated) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--radius);
+}
+
+/* React Flow overrides */
+.react-flow__background { background: var(--bg-base) !important; }
+.react-flow__minimap { background: var(--bg-surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; }
+.react-flow__controls { border: 1px solid var(--border) !important; border-radius: var(--radius) !important; overflow: hidden; }
+.react-flow__controls button { background: var(--bg-surface) !important; border-bottom: 1px solid var(--border) !important; color: var(--text-secondary) !important; fill: var(--text-secondary) !important; }
+.react-flow__controls button:hover { background: var(--bg-hover) !important; }
+.react-flow__edge-path { stroke: rgba(232,168,76,0.4) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
