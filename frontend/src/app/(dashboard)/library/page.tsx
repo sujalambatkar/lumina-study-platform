@@ -97,8 +97,10 @@ function DocCard({ doc }: { doc: Document }) {
       )}
 
       {doc.status === "failed" && doc.error_message && (
-        <p style={{ fontSize: 11, color: "#e85c5c", background: "rgba(232,92,92,0.08)", padding: "6px 10px", borderRadius: 6 }}>
-          {doc.error_message}
+        <p style={{ fontSize: 11, color: "#e85c5c", background: "rgba(232,92,92,0.08)", padding: "8px 10px", borderRadius: 6, lineHeight: 1.5 }}>
+          {doc.error_message.includes("blocked") || doc.error_message.includes("cloud")
+            ? "YouTube is blocked on cloud servers. Use a PDF or web URL instead."
+            : doc.error_message}
         </p>
       )}
 

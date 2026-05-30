@@ -127,9 +127,16 @@ def parse_youtube_transcript(url: str) -> tuple[list[str], str]:
 
     # ── Give up ──────────────────────────────────────────────────────────────
     if not data:
+        # Detect YouTube IP block (common on cloud providers like Render)
+        combined = " ".join(errors).lower()
+        if "blocked" in combined or "cloud" in combined or "ip" in combined:
+            raise ValueError(
+                "YouTube has blocked transcript access from this server's IP address. "
+                "This is a YouTube restriction on cloud hosting providers (Render, AWS, etc.). "
+                "Please use a PDF upload or web URL instead."
+            )
         raise ValueError(
-            "Could not retrieve transcript. The video may not have English captions. "
-            f"Errors: {' | '.join(errors)}"
+            "Could not retrieve transcript. Make sure the video has English captions enabled."
         )
 
     segments = _entries_to_segments(data)
