@@ -1,14 +1,5 @@
 # Lumina — AI Study Platform
 
-```
-██╗     ██╗   ██╗███╗   ███╗██╗███╗   ██╗ █████╗
-██║     ██║   ██║████╗ ████║██║████╗  ██║██╔══██╗
-██║     ██║   ██║██╔████╔██║██║██╔██╗ ██║███████║
-██║     ██║   ██║██║╚██╔╝██║██║██║╚██╗██║██╔══██║
-███████╗╚██████╔╝██║ ╚═╝ ██║██║██║ ╚████║██║  ██║
-╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝
-Your study material. Finally understood.
-```
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat&logo=next.js)](https://nextjs.org)
