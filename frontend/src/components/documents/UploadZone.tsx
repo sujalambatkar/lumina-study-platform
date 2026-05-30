@@ -125,7 +125,21 @@ export default function UploadZone() {
       {/* Content */}
       <div style={{ padding: 20 }}>
         <AnimatePresence mode="wait">
-          {tab === "pdf" ? (
+          {tab === "youtube" ? (
+            <motion.div key="youtube-notice" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
+              <div style={{
+                padding: "14px 16px", borderRadius: 10, marginBottom: 16,
+                background: "rgba(232,92,92,0.06)", border: "1px solid rgba(232,92,92,0.2)",
+              }}>
+                <p style={{ fontSize: 13, color: "#e85c5c", fontWeight: 500, marginBottom: 4 }}>
+                  YouTube is not available on the deployed version
+                </p>
+                <p style={{ fontSize: 12, color: "#8a8278", lineHeight: 1.6 }}>
+                  Render (the cloud server hosting this app) is blocked by YouTube. YouTube ingestion works fine when running the app locally. This is a Render IP restriction, not a bug.
+                </p>
+              </div>
+            </motion.div>
+          ) : tab === "pdf" ? (
             <motion.div key="pdf" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
               <div
                 onClick={() => fileRef.current?.click()}
