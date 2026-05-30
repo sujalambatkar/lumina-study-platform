@@ -6,13 +6,24 @@ from typing import Optional
 
 import chromadb
 from fastembed import TextEmbedding
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from app.config import settings
 from app.database import get_db
 from app.documents.parsers import parse_pdf_bytes, parse_youtube_transcript, parse_web_url
 
-_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
+
+def _split_text(text: str, chunk_size: int = 800, overlap: int = 100) -> list[str]:
+    if len(text) <= chunk_size:
+        return [text]
+    chunks: list[str] = []
+    start = 0
+    while start < len(text):
+        end = min(start + chunk_size, len(text))
+        chunks.append(text[start:end])
+        if end == len(text):
+            break
+        start = end - overlap
+    return chunks
 _embedding_model: Optional[TextEmbedding] = None
 _chroma_client: Optional[chromadb.PersistentClient] = None
 
@@ -84,7 +95,7 @@ async def ingest_web(document_id: str, url: str) -> None:
 async def _embed_and_store(document_id: str, full_text: str) -> None:
     loop = asyncio.get_event_loop()
 
-    chunks = _splitter.split_text(full_text)
+    chunks = _split_text(full_text)
     await _update_document_status(document_id, "processing", 50)
 
     model = get_embedding_model()

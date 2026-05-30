@@ -109,7 +109,7 @@ function DocCard({ doc }: { doc: Document }) {
       )}
 
       {/* Actions */}
-      {(doc.status === "ready" || doc.status === "failed") && (
+      {(doc.status === "ready" || doc.status === "failed" || doc.status === "processing") && (
         <div style={{ display: "flex", alignItems: "center", gap: 6, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           {doc.status === "ready" && (
             <>
