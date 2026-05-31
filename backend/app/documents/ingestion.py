@@ -92,8 +92,9 @@ async def ingest_web(document_id: str, url: str) -> None:
 
 async def retrieve_chunks(document_id: str, query: str, n_results: int = 6) -> list[dict]:
     db = get_db()
+
+    # Strategy 1: MongoDB text search (requires text index)
     try:
-        # MongoDB full-text search within this document's chunks
         cursor = db.chunks.find(
             {"$text": {"$search": query}, "document_id": document_id},
             {"score": {"$meta": "textScore"}, "text": 1, "chunk_index": 1}
@@ -104,13 +105,31 @@ async def retrieve_chunks(document_id: str, query: str, n_results: int = 6) -> l
     except Exception:
         pass
 
-    # Fallback: return first N chunks if text search fails (index not ready yet)
-    cursor = db.chunks.find(
-        {"document_id": document_id},
-        {"text": 1, "chunk_index": 1}
-    ).sort("chunk_index", 1).limit(n_results)
-    results = await cursor.to_list(length=n_results)
-    return [{"text": r["text"], "chunk_index": r.get("chunk_index", 0)} for r in results]
+    # Strategy 2: Simple keyword filter across all chunks
+    query_words = [w for w in query.lower().split() if len(w) > 3]
+    if query_words:
+        regex = "|".join(query_words[:5])
+        try:
+            cursor = db.chunks.find(
+                {"document_id": document_id, "text": {"$regex": regex, "$options": "i"}},
+                {"text": 1, "chunk_index": 1}
+            ).limit(n_results)
+            results = await cursor.to_list(length=n_results)
+            if results:
+                return [{"text": r["text"], "chunk_index": r.get("chunk_index", 0)} for r in results]
+        except Exception:
+            pass
+
+    # Strategy 3: Return first N chunks regardless (always works if chunks exist)
+    try:
+        cursor = db.chunks.find(
+            {"document_id": document_id},
+            {"text": 1, "chunk_index": 1}
+        ).sort("chunk_index", 1).limit(n_results)
+        results = await cursor.to_list(length=n_results)
+        return [{"text": r["text"], "chunk_index": r.get("chunk_index", 0)} for r in results]
+    except Exception:
+        return []
 
 
 async def delete_document_chunks(document_id: str) -> None:

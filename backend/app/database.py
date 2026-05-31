@@ -30,6 +30,9 @@ async def _create_indexes() -> None:
     await db.documents.create_index("user_id")
     await db.documents.create_index([("user_id", 1), ("created_at", -1)])
     await db.documents.create_index("status")
+    # Chunks — text index for full-text search + document filter
+    await db.chunks.create_index("document_id")
+    await db.chunks.create_index([("text", "text")])
     # Quiz attempts
     await db.quiz_attempts.create_index([("user_id", 1), ("document_id", 1)])
     await db.quiz_attempts.create_index([("user_id", 1), ("document_id", 1), ("topic", 1)])
