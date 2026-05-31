@@ -47,8 +47,6 @@ async def _store_chunks(document_id: str, chunks: list[str]) -> None:
         for i, chunk in enumerate(chunks)
     ]
     await db.chunks.insert_many(docs)
-    # Ensure text index exists (idempotent)
-    await db.chunks.create_index([("text", "text"), ("document_id", 1)])
 
 
 async def _ingest(document_id: str, full_text: str) -> None:
