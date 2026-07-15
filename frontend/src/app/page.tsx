@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Sparkles, MessageSquare, Network, Brain,
-  FileText, Video, Globe, BookOpen, GraduationCap, Microscope, Code2, FlaskConical, Play,
+  FileText, Video, Globe, BookOpen, GraduationCap, Microscope, Code2, FlaskConical, Play, Copy, Check,
 } from "lucide-react";
-import { useAuthStore } from "@/store/authStore";
 import toast from "react-hot-toast";
 
 const FEATURES = [
@@ -78,20 +76,16 @@ const DEMO_EMAIL = "random@gmail.com";
 const DEMO_PASSWORD = "12345678";
 
 export default function LandingPage() {
-  const { login } = useAuthStore();
-  const router = useRouter();
-  const [demoLoading, setDemoLoading] = useState(false);
+  const [copied, setCopied] = useState<"email" | "password" | null>(null);
 
-  const tryDemo = async () => {
-    setDemoLoading(true);
+  const copy = async (value: string, which: "email" | "password") => {
     try {
-      await login(DEMO_EMAIL, DEMO_PASSWORD);
-      toast.success("Signed in as demo user");
-      router.push("/dashboard");
+      await navigator.clipboard.writeText(value);
+      setCopied(which);
+      toast.success(`${which === "email" ? "Email" : "Password"} copied`);
+      setTimeout(() => setCopied(null), 1500);
     } catch {
-      toast.error("Demo login failed — make sure the backend is running");
-    } finally {
-      setDemoLoading(false);
+      toast.error("Could not copy — select the text manually");
     }
   };
   return (
@@ -210,31 +204,6 @@ export default function LandingPage() {
           }}>
             Start for free <ArrowRight size={15} />
           </Link>
-          <button
-            onClick={tryDemo}
-            disabled={demoLoading}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "13px 28px", borderRadius: 8,
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "#ede9e0", fontWeight: 500, fontSize: 14,
-              cursor: demoLoading ? "not-allowed" : "pointer",
-              opacity: demoLoading ? 0.7 : 1,
-              fontFamily: "var(--font-body)",
-            }}
-          >
-            {demoLoading ? (
-              <>
-                <span style={{ width: 13, height: 13, border: "2px solid rgba(255,255,255,0.2)", borderTopColor: "#ede9e0", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
-                Loading demo…
-              </>
-            ) : (
-              <>
-                <Play size={14} /> Try demo
-              </>
-            )}
-          </button>
           <Link href="/login" style={{
             display: "inline-flex", alignItems: "center",
             padding: "13px 28px", borderRadius: 8,
@@ -245,16 +214,51 @@ export default function LandingPage() {
           </Link>
         </motion.div>
 
-        {/* Demo credentials hint */}
-        <motion.p
+        {/* Demo credentials — sign in with these to try the app instantly */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
-          style={{ fontSize: 12, color: "#4a4642", marginTop: 14 }}
+          style={{
+            marginTop: 24, maxWidth: 380, marginLeft: "auto", marginRight: "auto",
+            background: "rgba(232,168,76,0.06)", border: "1px solid rgba(232,168,76,0.18)",
+            borderRadius: 12, padding: "16px 18px", textAlign: "left",
+          }}
         >
-          Demo: <span style={{ color: "#6b6560" }}>{DEMO_EMAIL}</span>
-          {" · "}password: <span style={{ color: "#6b6560" }}>{DEMO_PASSWORD}</span>
-        </motion.p>
+          <p style={{ fontSize: 12, color: "#e8a84c", fontWeight: 600, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+            <Play size={12} /> Try it now — sign in with the demo account
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {([
+              { label: "Email", value: DEMO_EMAIL, which: "email" as const },
+              { label: "Password", value: DEMO_PASSWORD, which: "password" as const },
+            ]).map(({ label, value, which }) => (
+              <button
+                key={which}
+                onClick={() => copy(value, which)}
+                title="Click to copy"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                  background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 8, padding: "9px 12px", cursor: "pointer",
+                  fontFamily: "var(--font-body)", width: "100%", textAlign: "left",
+                }}
+              >
+                <span style={{ fontSize: 11, color: "#6b6560", minWidth: 62 }}>{label}</span>
+                <span style={{ fontSize: 13, color: "#ede9e0", fontFamily: "monospace", flex: 1 }}>{value}</span>
+                <span style={{ fontSize: 11, color: copied === which ? "#4caf7d" : "#8a8278", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  {copied === which ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
+                </span>
+              </button>
+            ))}
+          </div>
+          <Link href="/login" style={{
+            display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12,
+            color: "#e8a84c", fontSize: 13, fontWeight: 500, textDecoration: "none",
+          }}>
+            Go to sign in <ArrowRight size={13} />
+          </Link>
+        </motion.div>
       </section>
 
       {/* Features */}
@@ -373,8 +377,6 @@ export default function LandingPage() {
       }}>
         LangGraph · Groq · ChromaDB · Next.js 15 · MIT License
       </footer>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
