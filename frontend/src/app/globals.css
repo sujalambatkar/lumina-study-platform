@@ -1,29 +1,172 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #ffffff;
-  --fg: #0a0a0a;
-  --muted: #737373;
-  --line: #e5e5e5;
-  --soft: #f5f5f5;
+  --bg-base: #ffffff;
+  --bg-surface: #fafafa;
+  --bg-elevated: #f4f4f5;
+  --bg-hover: #ececee;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+  --text-primary: #0a0a0a;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
+  --accent: #0a0a0a;
+  --accent-hover: #262626;
+  --accent-dim: rgba(0, 0, 0, 0.06);
+  --accent-glow: rgba(0, 0, 0, 0.03);
+  --success: #15803d;
+  --danger: #b91c1c;
+  --info: #52525b;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
 }
 
-html { -webkit-font-smoothing: antialiased; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  --font-display: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
 body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 15px;
   line-height: 1.6;
+  min-height: 100dvh;
 }
 
-::selection { background: var(--fg); color: var(--bg); }
-
-button { cursor: pointer; }
-button:focus-visible, a:focus-visible, input:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: 2px;
+::selection {
+  background: var(--accent-dim);
+  color: var(--accent);
 }
 
-@keyframes blink { 50% { opacity: 0; } }
-.caret::after { content: "▍"; animation: blink 1s steps(1) infinite; margin-left: 1px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+
+/* --- Backgrounds --- */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-dots {
+  background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* --- Glass card --- */
+.glass {
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0,0,0,0.09);
+}
+
+/* --- Glow effects --- */
+.glow-amber {
+  box-shadow: 0 0 40px rgba(0,0,0,0.07), 0 0 80px rgba(0,0,0,0.03);
+}
+
+/* --- Prose (markdown) styles --- */
+.prose-lumina { color: var(--text-primary); }
+.prose-lumina h1, .prose-lumina h2, .prose-lumina h3 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  margin: 1.4em 0 0.5em;
+  font-weight: 500;
+}
+.prose-lumina h1 { font-size: 1.5em; }
+.prose-lumina h2 { font-size: 1.25em; }
+.prose-lumina h3 { font-size: 1.1em; }
+.prose-lumina p { margin-bottom: 0.9em; line-height: 1.7; }
+.prose-lumina p:last-child { margin-bottom: 0; }
+.prose-lumina ul, .prose-lumina ol { padding-left: 1.4em; margin-bottom: 0.9em; }
+.prose-lumina li { margin-bottom: 0.3em; }
+.prose-lumina code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(0,0,0,0.06);
+  color: var(--text-primary);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+.prose-lumina pre {
+  background: #f4f4f5;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.9em 0;
+}
+.prose-lumina pre code { background: none; padding: 0; color: var(--text-primary); }
+.prose-lumina blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1em;
+  color: var(--text-secondary);
+  margin: 1em 0;
+  font-style: italic;
+}
+.prose-lumina strong { color: var(--text-primary); font-weight: 600; }
+.prose-lumina a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.prose-lumina hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
+.prose-lumina table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.9em; }
+.prose-lumina th, .prose-lumina td { padding: 0.5em 0.75em; border: 1px solid var(--border); }
+.prose-lumina th { background: var(--bg-elevated); color: var(--text-secondary); font-weight: 500; }
+
+/* --- Cursor blink --- */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.cursor-blink::after {
+  content: "▋";
+  animation: blink 0.9s infinite;
+  color: var(--accent);
+  margin-left: 1px;
+  font-size: 0.85em;
+}
+
+/* --- Gradient text --- */
+.gradient-text {
+  background: linear-gradient(135deg, #52525b 0%, #0a0a0a 60%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- Shimmer loading --- */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(0,0,0,0.04) 50%, var(--bg-elevated) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--radius);
+}
+
+/* React Flow overrides */
+.react-flow__background { background: var(--bg-base) !important; }
+.react-flow__minimap { background: var(--bg-surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; }
+.react-flow__controls { border: 1px solid var(--border) !important; border-radius: var(--radius) !important; overflow: hidden; }
+.react-flow__controls button { background: var(--bg-surface) !important; border-bottom: 1px solid var(--border) !important; color: var(--text-secondary) !important; fill: var(--text-secondary) !important; }
+.react-flow__controls button:hover { background: var(--bg-hover) !important; }
+.react-flow__edge-path { stroke: rgba(0,0,0,0.24) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

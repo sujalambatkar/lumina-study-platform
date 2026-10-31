@@ -1,27 +1,49 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "react-hot-toast";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Lumina",
-  description: "Study smarter from your own material. Demo with sample data.",
+  title: "Lumina — AI Study Companion",
+  description: "Chat with your study material, map concepts and quiz yourself. Interactive demo.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`}>
       <body>
-        <header className="border-b border-[var(--line)]">
-          <nav className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
-            <Link href="/" className="text-lg font-semibold tracking-tight">Lumina</Link>
-            <div className="flex items-center gap-5 text-sm">
-              <Link href="/" className="hover:underline underline-offset-4">Library</Link>
-              <Link href="/progress" className="hover:underline underline-offset-4">Progress</Link>
-              <span className="hidden rounded-full border border-[var(--line)] px-2.5 py-0.5 text-xs text-[var(--muted)] sm:inline">Demo</span>
-            </div>
-          </nav>
-        </header>
-        <main className="mx-auto max-w-3xl px-5 py-10">{children}</main>
+        <ErrorBoundary>
+        {children}
+        </ErrorBoundary>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "#ffffff",
+              color: "#0a0a0a",
+              border: "1px solid rgba(0,0,0,0.14)",
+              fontFamily: "var(--font-body)",
+              fontSize: "13px",
+              borderRadius: "8px",
+            },
+            success: { iconTheme: { primary: "#15803d", secondary: "#ffffff" } },
+            error: { iconTheme: { primary: "#b91c1c", secondary: "#ffffff" } },
+          }}
+        />
       </body>
     </html>
   );
