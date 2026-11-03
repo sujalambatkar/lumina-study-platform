@@ -23,7 +23,6 @@ export interface SeedDoc {
   summary: string;
   important: string;
   qa: { keywords: string[]; answer: string }[];
-  fallback: string;
   topics: SeedTopic[];
   nodes: ConceptNode[];
   edges: ConceptEdge[];
@@ -44,7 +43,7 @@ export const SEED_DOCS: SeedDoc[] = [
       "The most important idea is **self-attention**: instead of reading a sentence one word at a time, the model compares every word with every other word at once and learns which ones matter for each other. This removes the sequential bottleneck of RNNs and is what makes modern large language models practical to train *(p. 3)*.",
     qa: [
       {
-        keywords: ["self-attention", "self attention", "attention work", "how does attention"],
+        keywords: ["self-attention", "self attention", "attention"],
         answer:
           "Each token is turned into a **query**, a **key** and a **value**. A token's query is compared with every key to get weights, and those weights mix the values into a new representation.\n\n`Attention(Q, K, V) = softmax(QKᵀ / √d) · V` *(p. 4)*\n\nThe √d scaling keeps the dot products from growing too large and saturating the softmax.",
       },
@@ -59,7 +58,7 @@ export const SEED_DOCS: SeedDoc[] = [
           "Attention is permutation-invariant, so the model has no sense of order by default. The paper adds **positional encodings**, fixed sine and cosine waves of different frequencies, to the input embeddings *(p. 6)*.",
       },
       {
-        keywords: ["rnn", "recurrent", "lstm", "faster", "parallel", "why"],
+        keywords: ["rnn", "recurrent", "lstm", "faster", "parallel"],
         answer:
           "RNNs must process tokens one after another, so training can't be parallelised across a sequence. Transformers compute all positions **at the same time**, which is dramatically faster on GPUs, and paths between distant tokens are short, making long-range dependencies easier to learn *(p. 2, 7)*.",
       },
@@ -69,8 +68,6 @@ export const SEED_DOCS: SeedDoc[] = [
           "The model has an **encoder** stack that reads the input and a **decoder** stack that generates the output. Each has 6 identical layers made of attention plus a feed-forward network, with residual connections and layer normalisation *(p. 3)*.",
       },
     ],
-    fallback:
-      "I couldn't find a direct answer to that in this paper. It focuses on **self-attention**, **multi-head attention**, **positional encoding** and the **encoder–decoder** design. Try asking about one of those.",
     topics: [
       { topic: "Self-attention", score: 88, attempts: 3 },
       { topic: "Multi-head attention", score: 80, attempts: 2 },
@@ -165,7 +162,7 @@ export const SEED_DOCS: SeedDoc[] = [
       "The key idea is that **learning is just finding good weights and biases**. The network has thousands of adjustable numbers, and gradient descent repeatedly nudges them in the direction that reduces the cost, which measures how wrong the network currently is **[12:30]**.",
     qa: [
       {
-        keywords: ["neuron", "what is a"],
+        keywords: ["neuron", "activation value"],
         answer:
           "A neuron is simply a **number between 0 and 1**, called its activation. In the first layer each neuron holds the brightness of one pixel; in the last layer each neuron represents how strongly the network believes the image is a particular digit **[02:10]**.",
       },
@@ -180,7 +177,7 @@ export const SEED_DOCS: SeedDoc[] = [
           "Learning means minimising a **cost function**, the average error across training examples. **Gradient descent** computes which direction lowers the cost fastest and steps every weight and bias that way, over and over **[12:30]**.",
       },
       {
-        keywords: ["hidden", "layer", "why"],
+        keywords: ["hidden", "layer"],
         answer:
           "Hidden layers let the network build **abstractions**. The hope is that early layers detect edges, later ones combine edges into loops and lines, and the final layer combines those into digits **[08:20]**.",
       },
@@ -190,8 +187,6 @@ export const SEED_DOCS: SeedDoc[] = [
           "A **sigmoid** function squishes any weighted sum into the 0–1 range so it can act as an activation. Modern networks often prefer ReLU because it trains more easily **[09:40]**.",
       },
     ],
-    fallback:
-      "The video doesn't cover that directly. It focuses on **neurons**, **layers**, **weights and biases**, and **gradient descent**. Try asking about one of those.",
     topics: [
       { topic: "Neurons and layers", score: 74, attempts: 2 },
       { topic: "Weights and biases", score: 61, attempts: 1 },
@@ -278,7 +273,7 @@ export const SEED_DOCS: SeedDoc[] = [
       "The most important idea is that photosynthesis is **two linked stages**: the light reactions capture energy as ATP and NADPH, and the Calvin cycle spends that energy to build sugar from CO₂. Neither stage works without the other.",
     qa: [
       {
-        keywords: ["what is", "overall", "equation", "photosynthesis"],
+        keywords: ["photosynthesis", "equation"],
         answer:
           "Photosynthesis converts **light energy into chemical energy**. Plants take in carbon dioxide and water and, using sunlight, produce **glucose** and release **oxygen**.",
       },
@@ -298,8 +293,6 @@ export const SEED_DOCS: SeedDoc[] = [
           "Chlorophyll absorbs mostly **red and blue** light and reflects **green**, which is why leaves look green.",
       },
     ],
-    fallback:
-      "The article doesn't address that directly. It covers the **overall equation**, the **light reactions**, the **Calvin cycle** and **chlorophyll**. Try asking about one of those.",
     topics: [
       { topic: "Light reactions", score: 91, attempts: 2 },
       { topic: "Calvin cycle", score: 85, attempts: 1 },

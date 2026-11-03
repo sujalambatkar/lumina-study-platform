@@ -254,22 +254,37 @@ class ApiClient {
     return `http://demo.local/chat?document_id=${encodeURIComponent(document_id)}&message=${encodeURIComponent(message)}`;
   }
 
-  /** Pre-written answer for a chat message. */
+  /**
+   * Pre-written answer for a chat message. Only answers from the document's
+   * own content; anything else gets a polite refusal (guardrail).
+   */
   chatAnswer(document_id: string, message: string): string {
     const c = contentFor(document_id);
     const m = message.toLowerCase();
+    const topics = c.nodes.slice(0, 4).map((n) => `**${n.label}**`).join(", ");
 
-    if (/summar|key point|overview|tl;?dr/.test(m)) return c.summary;
-    if (/main concept|concepts|key terms/.test(m)) {
+    // 1. Prompt-injection / role-override attempts
+    if (/(ignore|forget|disregard|override|bypass)\b.*\b(instruction|rule|prompt|guideline|previous|above|system)|system prompt|jailbreak|pretend (to be|you)|you are now|act as|developer mode|reveal your (prompt|instructions)/.test(m)) {
+      return `I can't change my instructions. I'm here to help you study **${c.title}**. Try asking about ${topics}.`;
+    }
+
+    // 2. Built-in study actions
+    if (/summar|key points?|overview|tl;?dr/.test(m)) return c.summary;
+    if (/main concepts?|key concepts?|key terms/.test(m)) {
       return "These are the main concepts in this material:\n\n" + c.nodes.map((n) => `- **${n.label}**: ${n.description}`).join("\n");
     }
     if (/outline|study plan|study guide/.test(m)) {
       return "Here is a study outline:\n\n" + c.nodes.map((n, i) => `${i + 1}. **${n.label}**: ${n.description}`).join("\n") + "\n\nTip: take the quiz afterwards to check what stuck.";
     }
-    if (/important|explain|biggest|core idea/.test(m)) return c.important;
+    if (/most important|core idea|biggest idea|main idea|big idea/.test(m)) return c.important;
 
-    const hit = c.qa.find((q) => q.keywords.some((k) => m.includes(k)));
-    return hit ? hit.answer : c.fallback;
+    // 3. Topic questions, matched on whole words only
+    const has = (k: string) => new RegExp(`(^|[^a-z])${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(m);
+    const hit = c.qa.find((q) => q.keywords.some(has));
+    if (hit) return hit.answer;
+
+    // 4. Off-topic: refuse rather than guess
+    return `I can only answer questions about **${c.title}**, and I couldn't find that in it. Try asking about ${topics}, or ask for a summary.`;
   }
 }
 
