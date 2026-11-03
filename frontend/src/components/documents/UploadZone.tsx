@@ -50,11 +50,15 @@ export default function UploadZone() {
       toast.error("Only PDF files are supported");
       return;
     }
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("PDF is too large. The demo accepts files up to 4 MB.");
+      return;
+    }
     setUploading(true);
     try {
       const doc = await api.uploadDocument(file);
       addDocument(doc);
-      toast.success(`"${doc.title}" is being processed`);
+      toast.success(`"${doc.title}" is ready`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -79,7 +83,7 @@ export default function UploadZone() {
         title: urlTitle.trim() || undefined,
       });
       addDocument(doc);
-      toast.success("Processing started");
+      toast.success("Document is ready");
       setUrl(""); setUrlTitle("");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to process URL");
@@ -125,21 +129,7 @@ export default function UploadZone() {
       {/* Content */}
       <div style={{ padding: 20 }}>
         <AnimatePresence mode="wait">
-          {tab === "youtube" ? (
-            <motion.div key="youtube-notice" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
-              <div style={{
-                padding: "14px 16px", borderRadius: 10, marginBottom: 16,
-                background: "rgba(185,28,28,0.06)", border: "1px solid rgba(185,28,28,0.2)",
-              }}>
-                <p style={{ fontSize: 13, color: "#b91c1c", fontWeight: 500, marginBottom: 4 }}>
-                  YouTube is not available on the deployed version
-                </p>
-                <p style={{ fontSize: 12, color: "#52525b", lineHeight: 1.6 }}>
-                  Render (the cloud server hosting this app) is blocked by YouTube. YouTube ingestion works fine when running the app locally. This is a Render IP restriction, not a bug.
-                </p>
-              </div>
-            </motion.div>
-          ) : tab === "pdf" ? (
+          {tab === "pdf" ? (
             <motion.div key="pdf" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
               <div
                 onClick={() => fileRef.current?.click()}
@@ -167,8 +157,8 @@ export default function UploadZone() {
                 <p style={{ fontSize: 13, color: "#52525b", marginBottom: 4 }}>
                   Drop PDF here or <span style={{ color: "#0a0a0a" }}>browse</span>
                 </p>
-                <p style={{ fontSize: 11, color: "#a1a1aa" }}>Up to 50 MB</p>
-                {uploading && <p style={{ fontSize: 11, color: "#0a0a0a", marginTop: 10 }}>Uploading...</p>}
+                <p style={{ fontSize: 11, color: "#a1a1aa" }}>Text-based PDFs up to 4 MB</p>
+                {uploading && <p style={{ fontSize: 11, color: "#0a0a0a", marginTop: 10 }}>Reading your document…</p>}
                 <input ref={fileRef} type="file" accept=".pdf" style={{ display: "none" }}
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
               </div>
@@ -178,11 +168,11 @@ export default function UploadZone() {
               style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
                 <label style={labelStyle}>
-                  Web URL
+                  {tab === "youtube" ? "YouTube URL" : "Web URL"}
                 </label>
                 <input
                   style={inputStyle}
-                  placeholder="https://example.com/article"
+                  placeholder={tab === "youtube" ? "https://www.youtube.com/watch?v=…" : "https://example.com/article"}
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   onFocus={(e) => { e.target.style.borderColor = "rgba(0,0,0,0.3)"; }}
@@ -200,6 +190,11 @@ export default function UploadZone() {
                   onBlur={(e) => { e.target.style.borderColor = "rgba(0,0,0,0.1)"; }}
                 />
               </div>
+              {tab === "youtube" && (
+                <p style={{ fontSize: 11, color: "#71717a", lineHeight: 1.5 }}>
+                  Needs a video with captions. YouTube sometimes blocks cloud servers, so this may not work for every video.
+                </p>
+              )}
               <button
                 onClick={handleUrlSubmit}
                 disabled={!url.trim() || uploading}
@@ -225,7 +220,7 @@ export default function UploadZone() {
                     }} />
                     Processing...
                   </>
-                ) : "Process page"}
+                ) : tab === "youtube" ? "Process video" : "Process page"}
               </button>
             </motion.div>
           )}

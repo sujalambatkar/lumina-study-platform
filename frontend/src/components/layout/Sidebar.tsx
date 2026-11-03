@@ -84,7 +84,7 @@ function NavContent({ onClose }: { onClose?: () => void }) {
       {/* Footer */}
       <div style={{ padding: "14px 16px", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
         <p style={{ fontSize: 11, color: "#a1a1aa", lineHeight: 1.5 }}>
-          Demo with sample data.<br />No account needed.
+          Demo · no account needed.
         </p>
       </div>
     </div>

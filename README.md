@@ -1,27 +1,30 @@
 # Lumina
 
-A study companion demo: upload material, chat with it (with cited sources), explore a concept map, take quizzes, and track mastery.
+An AI study companion. Upload a PDF or paste a link, then chat with it (with cited sources), explore a concept map, take quizzes and track mastery.
 
-This is a **demo**: it runs entirely in the browser with built-in sample data. No login, no database, no API keys.
+This is a demo: no login and no database. Everything is stored in your browser.
 
-- Three sample documents are included; uploads and links are simulated and reuse sample content.
-- Chat answers are pre-written and streamed to look live.
-- Quiz results feed the Tracker and are stored in your browser (localStorage).
+- **Sample documents:** three built-in documents with pre-written answers that work offline.
+- **Your own documents:** PDFs (text-based, up to 4 MB), web pages and YouTube videos with captions are read on the server and answered by an LLM through Groq. Answers are restricted to the document, and off-topic or prompt-injection messages are refused.
 
 ## Run locally
 
 ```bash
 cd frontend
+cp .env.example .env.local   # add your GROQ_API_KEY
 npm install
 npm run dev
 ```
 
-## Deploy
+## Deploy (Vercel)
 
-Import the repo on Vercel and set the **Root Directory** to `frontend`. No environment variables are needed.
+Import the repo, set **Root Directory** to `frontend`, and add the environment variable `GROQ_API_KEY`. Without it the sample documents still work, but uploads can't be answered.
 
-## Sample data
+## Layout
 
-All documents, chat answers, quizzes and concept maps live in `frontend/src/lib/mockData.ts`; the simulated API is `frontend/src/lib/api.ts`.
+- `frontend/src/app/api/*`: server routes (`extract`, `chat`, `quiz`, `concepts`)
+- `frontend/src/lib/server/*`: Groq client, retrieval, rate limit and SSRF guard
+- `frontend/src/lib/api.ts`: browser-side API (sample documents + real routes)
+- `frontend/src/lib/mockData.ts`: sample document content
 
-> The `backend/` folder (FastAPI + MongoDB + Groq) is the original full version and is not used by the demo.
+> The `backend/` folder (FastAPI + MongoDB) is the original full version and is not used by the demo.

@@ -22,6 +22,15 @@ const DAY = 86_400_000;
 const KEY_DOCS = "lumina_demo_docs";
 const KEY_REMOVED = "lumina_demo_removed";
 const KEY_SCORES = "lumina_demo_scores";
+const KEY_TEXT = "lumina_demo_text_";
+const KEY_MAP = "lumina_demo_map_";
+
+interface Extracted {
+  title: string;
+  text: string;
+  chunk_count: number;
+  topics: string[];
+}
 
 interface StoredDoc {
   id: string;
@@ -29,7 +38,10 @@ interface StoredDoc {
   source_type: Document["source_type"];
   source_url: string | null;
   created: number;
-  seed: string; // id of the seed doc whose sample content this upload borrows
+  seed?: string; // legacy: id of a sample doc whose content an old fake upload borrowed
+  live?: boolean; // real upload: text is stored under KEY_TEXT and AI routes are used
+  chunk_count?: number;
+  topics?: string[];
 }
 
 type ScoreMap = Record<string, Record<string, { total: number; attempts: number; last: string }>>;
@@ -71,7 +83,7 @@ function seedToDocument(s: SeedDoc, base: number): Document {
 }
 
 function storedToDocument(d: StoredDoc): Document {
-  const progress = Math.min(100, Math.round(((now() - d.created) / PROCESS_MS) * 100));
+  const progress = d.live ? 100 : Math.min(100, Math.round(((now() - d.created) / PROCESS_MS) * 100));
   const iso = new Date(d.created).toISOString();
   return {
     id: d.id,
@@ -80,7 +92,7 @@ function storedToDocument(d: StoredDoc): Document {
     source_url: d.source_url,
     status: progress >= 100 ? "ready" : "processing",
     progress,
-    chunk_count: progress >= 100 ? 20 + (hashString(d.title) % 40) : 0,
+    chunk_count: progress >= 100 ? (d.chunk_count ?? 20 + (hashString(d.title) % 40)) : 0,
     error_message: null,
     created_at: iso,
     updated_at: iso,
@@ -103,6 +115,27 @@ function contentFor(id: string): SeedDoc {
   return SEED_DOCS.find((s) => s.id === mine?.seed) ?? SEED_DOCS[0];
 }
 
+function liveDoc(id: string): StoredDoc | undefined {
+  return load<StoredDoc[]>(KEY_DOCS, []).find((d) => d.id === id && d.live);
+}
+
+async function post<T>(path: string, body: BodyInit | Record<string, unknown>): Promise<T> {
+  const isForm = body instanceof FormData;
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      method: "POST",
+      headers: isForm ? undefined : { "Content-Type": "application/json" },
+      body: isForm ? body : JSON.stringify(body),
+    });
+  } catch {
+    throw new Error("Couldn't reach the server. Check your connection and try again.");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
+  return data as T;
+}
+
 function statusFor(avg: number | null): MasteryStatus {
   if (avg === null) return "not_explored";
   return avg >= 75 ? "strong" : avg < 60 ? "needs_review" : "not_explored";
@@ -110,28 +143,48 @@ function statusFor(avg: number | null): MasteryStatus {
 
 class ApiClient {
   async uploadDocument(file: File): Promise<Document> {
-    return this.addStored(file.name.replace(/\.pdf$/i, ""), "pdf", null);
+    const form = new FormData();
+    form.append("file", file);
+    return this.addLive(await post<Extracted>("/api/extract", form), "pdf", null);
   }
 
   async ingestUrl(payload: URLIngestionRequest): Promise<Document> {
-    let fallbackTitle = payload.url;
-    try { fallbackTitle = new URL(payload.url).hostname.replace(/^www\./, ""); } catch { /* keep raw */ }
-    return this.addStored(payload.title?.trim() || fallbackTitle, payload.type === "youtube" ? "youtube" : "web", payload.url);
+    const form = new FormData();
+    form.append("url", payload.url);
+    form.append("type", payload.type);
+    const out = await post<Extracted>("/api/extract", form);
+    if (payload.title?.trim()) out.title = payload.title.trim();
+    return this.addLive(out, payload.type === "youtube" ? "youtube" : "web", payload.url);
   }
 
-  private async addStored(title: string, type: Document["source_type"], url: string | null): Promise<Document> {
-    await wait(400);
-    const mine = load<StoredDoc[]>(KEY_DOCS, []);
+  private addLive(out: Extracted, type: Document["source_type"], url: string | null): Document {
     const entry: StoredDoc = {
       id: `up-${now().toString(36)}`,
-      title,
+      title: out.title,
       source_type: type,
       source_url: url,
       created: now(),
-      seed: SEED_DOCS[hashString(title) % SEED_DOCS.length].id,
+      live: true,
+      chunk_count: out.chunk_count,
+      topics: out.topics,
     };
-    save(KEY_DOCS, [entry, ...mine]);
+    try {
+      localStorage.setItem(KEY_TEXT + entry.id, out.text);
+    } catch {
+      throw new Error("This document is too large for your browser's storage. Try a smaller file.");
+    }
+    save(KEY_DOCS, [entry, ...load<StoredDoc[]>(KEY_DOCS, [])]);
     return storedToDocument(entry);
+  }
+
+  /** Full text of a real (uploaded) document, or null for the built-in samples. */
+  getLiveText(id: string): string | null {
+    if (!liveDoc(id)) return null;
+    try { return localStorage.getItem(KEY_TEXT + id); } catch { return null; }
+  }
+
+  getTitle(id: string): string {
+    return allDocuments().find((d) => d.id === id)?.title ?? "Untitled";
   }
 
   async listDocuments(): Promise<Document[]> {
@@ -156,10 +209,16 @@ class ApiClient {
       save(KEY_REMOVED, [...load<string[]>(KEY_REMOVED, []), id]);
     } else {
       save(KEY_DOCS, load<StoredDoc[]>(KEY_DOCS, []).filter((d) => d.id !== id));
+      try { localStorage.removeItem(KEY_TEXT + id); localStorage.removeItem(KEY_MAP + id); } catch { /* ignore */ }
     }
   }
 
   async generateQuiz(document_id: string, topic: string, count = 5): Promise<QuizGenerateResponse> {
+    const text = this.getLiveText(document_id);
+    if (text) {
+      const r = await post<{ questions: QuizGenerateResponse["questions"] }>("/api/quiz", { text, topic, count });
+      return { document_id, topic, questions: r.questions };
+    }
     await wait(900);
     const bank = contentFor(document_id).quiz;
     const questions = Array.from({ length: Math.min(count, bank.length) }, (_, i) => {
@@ -187,6 +246,17 @@ class ApiClient {
   }
 
   async generateConceptMap(document_id: string): Promise<ConceptMapResponse> {
+    const text = this.getLiveText(document_id);
+    if (text) {
+      try {
+        const cached = localStorage.getItem(KEY_MAP + document_id);
+        if (cached) return JSON.parse(cached) as ConceptMapResponse;
+      } catch { /* regenerate */ }
+      const r = await post<Pick<ConceptMapResponse, "nodes" | "edges">>("/api/concepts", { text });
+      const map: ConceptMapResponse = { document_id, ...r };
+      try { localStorage.setItem(KEY_MAP + document_id, JSON.stringify(map)); } catch { /* ignore */ }
+      return map;
+    }
     await wait(1100);
     const c = contentFor(document_id);
     return { document_id, nodes: c.nodes, edges: c.edges };
@@ -195,6 +265,7 @@ class ApiClient {
   async getDocumentTracker(document_id: string): Promise<TopicMastery[]> {
     const doc = await this.getDocument(document_id);
     const c = contentFor(document_id);
+    const live = liveDoc(document_id);
     const isSeed = c.id === document_id;
     const stored = load<ScoreMap>(KEY_SCORES, {})[document_id] ?? {};
     const lastSeed = new Date(now() - 1 * DAY).toISOString();
@@ -208,8 +279,9 @@ class ApiClient {
         });
       }
     } else {
-      for (const n of c.nodes.slice(0, 3)) {
-        rows.set(n.label.toLowerCase(), { total: 0, attempts: 0, last: null, label: n.label });
+      const labels = live ? (live.topics ?? []) : c.nodes.slice(0, 3).map((n) => n.label);
+      for (const label of labels) {
+        rows.set(label.toLowerCase(), { total: 0, attempts: 0, last: null, label });
       }
     }
     for (const [key, s] of Object.entries(stored)) {

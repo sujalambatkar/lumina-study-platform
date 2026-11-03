@@ -26,7 +26,46 @@ export function useStreamingChat() {
     async (url: string, options: StreamOptions) => {
       cancelRef.current?.();
       const params = new URL(url).searchParams;
-      const answer = api.chatAnswer(params.get("document_id") ?? "", params.get("message") ?? "");
+      const docId = params.get("document_id") ?? "";
+      const message = params.get("message") ?? "";
+      const text = api.getLiveText(docId);
+
+      if (text) {
+        const controller = new AbortController();
+        cancelRef.current = () => controller.abort();
+        setIsStreaming(true);
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, message, title: api.getTitle(docId) }),
+            signal: controller.signal,
+          });
+          if (!res.ok || !res.body) {
+            const err = await res.json().catch(() => ({}));
+            options.onError(err.detail || `Request failed (${res.status})`);
+            return;
+          }
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            options.onToken(decoder.decode(value, { stream: true }));
+          }
+          options.onDone();
+        } catch (e) {
+          if (!(e instanceof Error && e.name === "AbortError")) {
+            options.onError("Couldn't reach the server. Please try again.");
+          }
+        } finally {
+          setIsStreaming(false);
+          cancelRef.current = null;
+        }
+        return;
+      }
+
+      const answer = api.chatAnswer(docId, message);
       const words = answer.match(/\S+\s*/g) ?? [answer];
 
       let cancelled = false;
